@@ -6,7 +6,9 @@
 
 GPU—A2000; CPU—6x Xeon E5-2680 v4; 内存—30G; HuggingFace系统镜像；Pytorch 3.8；CUDA 11.3；Python 3.8；transformer 3.4；protobuf 3.19.0;tensorflow； pytorch-crf等
 
-1.2 首先运行 BERT+Bi_LSTM+CRF.ipynb 的代码---在终端中运行代码：python main.py 
+1.2 运行方式
+
+在终端中运行代码：python main.py 
 
 若报错TypeError: Descriptors cannot be created directly. If this call came from a _pb2.py file, your generated code is out of date and must be regenerated with protoc >= 3.19.0. If you cannot immediately regenerate your protos, some other possible workarounds are: 
 1. Downgrade the protobuf package to 3.20.x or lower.

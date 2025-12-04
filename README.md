@@ -8,13 +8,15 @@ GPU—A2000; CPU—6x Xeon E5-2680 v4; 内存—30G; HuggingFace系统镜像；P
 
 1.2 首先运行 BERT+Bi_LSTM+CRF.ipynb 的代码---在终端中运行代码：python main.py 
 
-如果运行后出现TypeError: Descriptors cannot be created directly. If this call came from a _pb2.py file, your generated code is out of date and must be regenerated with protoc >= 3.19.0. If you cannot immediately regenerate your protos, some other possible workarounds are: 
+若报错TypeError: Descriptors cannot be created directly. If this call came from a _pb2.py file, your generated code is out of date and must be regenerated with protoc >= 3.19.0. If you cannot immediately regenerate your protos, some other possible workarounds are: 
 1. Downgrade the protobuf package to 3.20.x or lower.
-2. Set PROTOCOL BUFFERS PYTHON IMPLEMENTATION=python (but this will use pure Python parsing and will be much slower)，你需要降低 protobuf 版本，并在 BERT+Bi_LSTM+CRF.ipynb 中通过 pip install protobuf==3.19.0 运行代码。
+2. Set PROTOCOL BUFFERS PYTHON IMPLEMENTATION=python (but this will use pure Python parsing and will be much slower)
+
+则需要降低 protobuf 版本，并在 BERT+Bi_LSTM+CRF.ipynb 中通过 pip install protobuf==3.19.0 运行代码。
 
 二. 模型描述
 
-2.1 数据预处理：对文本进行分词；BIO 序列标注
+2.1 数据预处理：对文本进行按段进行切割；BIO 序列标注
 
 2.2 数据集构建：定义数据集类（NerDataset），将文本数据转换为适合 PyTorch 框架输入的格式。使用句号作为分隔符，从处理后的文本中顺序读取序列。最大序列长度设置为 256。当序列长度超过最大值时，将其截断到最大长度，并在存储前在序列开头和结尾添加标记（[‘CLS’], [‘SEP’]）。同时，为了确保批次中每个样本的序列长度（batch）一致，设置了序列填充函数（PadBatch）。当确定该样本的序列长度小于 256 时，用零将样本序列填充至 256。
 

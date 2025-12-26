@@ -1,44 +1,50 @@
-基于 BERT 中文电子病历命名实体识别---采用基于 BERT 的融合模型，对医疗公共数据集 CCKS2019 进行命名实体识别研究，模型在测试集上达到了 0.860 的 F1 分数。
+Named Entity Recognition for Chinese Electronic Medical Records Based on BERT :Bert-Base-Chinese + Bi-LSTM + CRF
 
-一. 运行说明：
+1. Running Instructions
 
-1.1 实验环境
+1.1 Experimental Environment
 
-GPU—A2000; CPU—6x Xeon E5-2680 v4; 内存—30G; HuggingFace系统镜像；Pytorch 3.8；CUDA 11.3；Python 3.8；transformer 3.4；protobuf 3.19.0;tensorflow； pytorch-crf等
+GPU—A2000; CPU—6x Xeon E5-2680 v4; Memory—30G; HuggingFace；CUDA 11.3；Python 3.8；transformer 3.4；protobuf 3.19.0;tensorflow； pytorch-crf
 
-1.2 运行方式
+1.2 Execution Method
 
-在终端中运行代码：python main.py 
+bash：python main.py 
 
-若报错TypeError: Descriptors cannot be created directly. If this call came from a _pb2.py file, your generated code is out of date and must be regenerated with protoc >= 3.19.0. If you cannot immediately regenerate your protos, some other possible workarounds are: 
+1.3 Error Handling
+TypeError: Descriptors cannot be created directly. If this call came from a _pb2.py file, your generated code is out of date and must be regenerated with protoc >= 3.19.0. If you cannot immediately regenerate your protos, some other possible workarounds are: 
 1. Downgrade the protobuf package to 3.20.x or lower.
 2. Set PROTOCOL BUFFERS PYTHON IMPLEMENTATION=python (but this will use pure Python parsing and will be much slower)
 
-则需要降低 protobuf 版本，并在 BERT+Bi_LSTM+CRF.ipynb 中通过 pip install protobuf==3.19.0 运行代码。
+Resolve it by downgrading the protobuf version and running the following command in the BERT+Bi_LSTM+CRF.ipynb notebook： pip install protobuf==3.19.0 
 
-二. 模型描述
+2. Model Description
 
-2.1 数据预处理：对文本进行按段进行切割；BIO 序列标注
+2.1 Sequence labeling：BIO labeling scheme 
 
-2.2 数据集构建：定义数据集类（NerDataset），将文本数据转换为适合 PyTorch 框架输入的格式。使用句号作为分隔符，从处理后的文本中顺序读取序列。最大序列长度设置为 256。当序列长度超过最大值时，将其截断到最大长度，并在存储前在序列开头和结尾添加标记（[‘CLS’], [‘SEP’]）。同时，为了确保批次中每个样本的序列长度（batch）一致，设置了序列填充函数（PadBatch）。当确定该样本的序列长度小于 256 时，用零将样本序列填充至 256。
+2.2 Dataset Construction：
 
-2.3 数据加载：使用PyTorch平台的数据加载类（DateLoader）创建了三个数据迭代器：train_iter、eval_iter和test_iter，分别在训练、验证和测试时加载批量数据。其中参数dataset表示输入的数据集。参数batch_size表示每个batch中的样本数量，训练时设置为64，验证和测试时设置为32。每个epoch都会将数据顺序打乱，以避免模型学习到数据顺序。数据加载时的子进程数据设置为4，可以降低数据读取时间。加载过程中对样本的填充方式为PadBatch
+2.2.1 Define NerDataset to convert raw text data into PyTorch-compatible tensor forma
 
-三. Bert-Base-Chinese + Bi-LSTM + CRF模型构建
+2.2.2 Extract sequences from processed text sequentially using Chinese periods (。) as delimiters
 
-3.1 BERT模型接受输入参数（sentence）,先将输入的字符映射为ID，ID经过编码层（Embedding Layer）得到char embedding，其维度为768，将其存入embeds中并送入Bi-LSTM层
+2.2.3 Set maximum sequence length to 256 tokens；Add special tokens (['CLS'] at the start, [SEP'] at the end) to all sequences before storage；Implement a PadBatch function to ensure uniform sequence length across a batch—pad sequences shorter than 256 tokens with zeros to reach the 256-length standard.
 
-3.2 Bi-LSTM模型的输入维度为768，层数设置为2。Bi-LSTM模型将对embeds进行特征提取，得到上下文编码enc
+2.3 Data Loading
 
-3.3 enc经过Dropout层正则化后，通过线性层映射到标签空间，得到发射矩阵emissions并传入CRF层。训练时，CRF将计算负对数似然损失，用于训练优化，优化算法为Adam；测试时，CRF将通过解码获得预测的最佳标签序列
+2.3.1 Use PyTorch's DataLoader to create three iterators (train_iter, eval_iter, test_iter) for training, validation, and testing respectively.
 
-四. 模型优化
+2.3.2 Key DataLoader parameters
 
-4.1 学习率优化
+batch_size: 64 for training, 32 for validation/testing.
 
-选择线性预热（Linear Warmup）策略进行学习率优化。选择该策略能在训练初期，平稳增加学习率，以避免跳过损失函数的有效区域，有利于模型收敛。
-具体来说，使用了调度器函数（get_linear_schedule_with_warmup），根据预热步数（num_warmup_steps）和总训练步数（total_steps）自动调整学习率。预热期间，学习率将从0线性增加优化器（AdamW）中设置的初始化学习率lr（值为0.001）。之后学习率将再线性降低到0
+Use 4 subprocesses to accelerate data reading.
 
-4.2 正则化
+三. Model Construction
 
-选择随机失活（Dropout）对模型进行正则化。训练时，随机将某些神经元输出归零，增强本实验模型的鲁棒性，从实验结果来看，在一定程度上避免了过拟合。
+3.1 Input processing: The BERT model takes sentence as input, maps each character to a unique ID via the BERT vocabulary.Embedding generation: The character IDs are fed into the Embedding Layer to generate 768-dimensional character embeddings (char embedding). Store the embeddings in the embeds tensor and pass it to the Bi-LSTM layer.
+
+3.2 Layer configuration: Bi-LSTM is initialized with an input dimension of 768 (matching BERT embeddings) and 2 hidden layers.Contextual encoding: The Bi-LSTM processes embeds to capture bidirectional contextual features, outputting contextual encodings (enc).
+
+3.3 Apply Dropout regularization to enc to prevent overfitting.Map the regularized encodings to the label space via a linear layer to generate the emission matrix (emissions).Training phase: The CRF layer computes the negative log-likelihood loss (NLLLoss) to optimize model parameters, with the Adam optimizer used for gradient descent.Testing phase: The CRF layer performs Viterbi decoding on emissions to generate the optimal predicted label sequence (maximizing the conditional probability of the label sequence given the input).
+
+

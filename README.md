@@ -1,4 +1,4 @@
-Named Entity Recognition for Chinese Electronic Medical Records Based on BERT :Bert-Base-Chinese + Bi-LSTM + CRF
+Named Entity Recognition for Chinese Electronic Medical Records Based on BERT
 
 1. Running Instructions
 
@@ -9,13 +9,6 @@ GPU—A2000; CPU—6x Xeon E5-2680 v4; Memory—30G; HuggingFace；CUDA 11.3；P
 1.2 Execution Method
 
 bash：python main.py 
-
-1.3 Error Handling
-TypeError: Descriptors cannot be created directly. If this call came from a _pb2.py file, your generated code is out of date and must be regenerated with protoc >= 3.19.0. If you cannot immediately regenerate your protos, some other possible workarounds are: 
-1. Downgrade the protobuf package to 3.20.x or lower.
-2. Set PROTOCOL BUFFERS PYTHON IMPLEMENTATION=python (but this will use pure Python parsing and will be much slower)
-
-Resolve it by downgrading the protobuf version and running the following command in the BERT+Bi_LSTM+CRF.ipynb notebook： pip install protobuf==3.19.0 
 
 2. Model Description
 
@@ -39,7 +32,7 @@ batch_size: 64 for training, 32 for validation/testing.
 
 Use 4 subprocesses to accelerate data reading.
 
-三. Model Construction
+3. Model Construction
 
 3.1 Input processing: The BERT model takes sentence as input, maps each character to a unique ID via the BERT vocabulary.Embedding generation: The character IDs are fed into the Embedding Layer to generate 768-dimensional character embeddings (char embedding). Store the embeddings in the embeds tensor and pass it to the Bi-LSTM layer.
 
